@@ -40,10 +40,7 @@ X = input_space.get_theano_batch()
 samples, _ = model.generator.inpainting_sample_and_noise(X)
 f = theano.function([X], samples)
 
-samples = []
-for i in xrange(repeat_samples):
-    samples.append(f(data))
-
+samples = [f(data) for _ in xrange(repeat_samples)]
 samples = np.concatenate(samples)
 
 is_color = True

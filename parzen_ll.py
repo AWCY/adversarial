@@ -81,7 +81,7 @@ def get_valid(ds, limit_size = -1, fold = 0):
         data = TFD('valid', fold = fold, scale=True)
         return data.X
     else:
-         raise ValueError("Unknow dataset: {}".format(args.dataet))
+        raise ValueError(f"Unknow dataset: {args.dataet}")
 
 
 def get_test(ds, test, fold=0):
@@ -90,7 +90,7 @@ def get_test(ds, test, fold=0):
     elif ds == 'tfd':
         return test.get_test_set(fold=fold)
     else:
-        raise ValueError("Unknow dataset: {}".format(args.dataet))
+        raise ValueError(f"Unknow dataset: {args.dataet}")
 
 
 def main():

@@ -33,9 +33,7 @@ if isinstance(space, VectorSpace):
 else:
     total_dimension = space.get_total_dimension()
     import numpy as np
-    num_colors = 1
-    if total_dimension % 3 == 0:
-        num_colors = 3
+    num_colors = 3 if total_dimension % 3 == 0 else 1
     w = int(np.sqrt(total_dimension / num_colors))
     from pylearn2.space import Conv2DSpace
     desired_space = Conv2DSpace(shape=[w, w], num_channels=num_colors, axes=('b',0,1,'c'))
