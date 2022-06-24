@@ -89,15 +89,15 @@ class AdversaryPair(Model):
 
         if self.monitor_generator:
             for key in g_ch:
-                rval['gen_' + key] = g_ch[key]
+                rval[f'gen_{key}'] = g_ch[key]
         if self.monitor_discriminator:
             for key in d_ch:
-                rval['dis_on_data_' + key] = d_samp_ch[key]
+                rval[f'dis_on_data_{key}'] = d_samp_ch[key]
             for key in d_ch:
-                rval['dis_on_samp_' + key] = d_ch[key]
+                rval[f'dis_on_samp_{key}'] = d_ch[key]
         if self.monitor_inference:
             for key in i_ch:
-                rval['inf_' + key] = i_ch[key]
+                rval[f'inf_{key}'] = i_ch[key]
         return rval
 
     def get_monitoring_data_specs(self):
@@ -177,10 +177,7 @@ class Generator(Model):
 
 
     def get_monitoring_channels(self, data):
-        if data is None:
-            m = 100
-        else:
-            m = data.shape[0]
+        m = 100 if data is None else data.shape[0]
         n = self.mlp.get_input_space().get_total_dimension()
         noise = self.get_noise((m, n))
         rval = OrderedDict()
@@ -230,8 +227,7 @@ class Generator(Model):
             samples = samples.flatten(2)
             data = output_space.convert(data, output_space.axes, ('b', 0, 1, 'c'))
             data = data.flatten(2)
-        parzen = theano_parzen(data, samples, sigma)
-        return parzen
+        return theano_parzen(data, samples, sigma)
 
     def _modify_updates(self, updates):
         self.mlp.modify_updates(updates)
@@ -369,10 +365,7 @@ class AdversaryCost2(DefaultDataSpecsMixin, Cost):
                                                 self.inference_input_include_probs,
                                                 self.inference_default_input_scale,
                                                 self.inference_input_scales)
-            if self.infer_layer is None:
-                target = z
-            else:
-                target = other_layers[self.infer_layer]
+            target = z if self.infer_layer is None else other_layers[self.infer_layer]
             i_obj = model.inferer.layers[-1].cost(target, pred)
         else:
             i_obj = 0
@@ -638,10 +631,7 @@ class InpaintingAdversaryCost(DefaultDataSpecsMixin, Cost):
 
         if self.no_drop_in_d_for_g:
             y_hat0_no_drop = d.dropout_fprop(S)
-            g_obj = d.layers[-1].cost(y1, y_hat0)
-        else:
-            g_obj = d.layers[-1].cost(y1, y_hat0)
-
+        g_obj = d.layers[-1].cost(y1, y_hat0)
         if model.inferer is not None:
             # Change this if we ever switch to using dropout in the
             # construction of S.
@@ -792,8 +782,7 @@ class Sigmoid(Layer):
         self.output_space = space
 
     def fprop(self, state_below):
-        p = T.nnet.sigmoid(state_below)
-        return p
+        return T.nnet.sigmoid(state_below)
 
 class SubtractHalf(Layer):
 
@@ -970,10 +959,7 @@ class ThresholdedAdversaryCost(DefaultDataSpecsMixin, Cost):
                                                 self.inference_input_include_probs,
                                                 self.inference_default_input_scale,
                                                 self.inference_input_scales)
-            if self.infer_layer is None:
-                target = z
-            else:
-                target = other_layers[self.infer_layer]
+            target = z if self.infer_layer is None else other_layers[self.infer_layer]
             i_obj = model.inferer.layers[-1].cost(target, pred)
         else:
             i_obj = 0
@@ -1200,10 +1186,7 @@ class LazyAdversaryCost(DefaultDataSpecsMixin, Cost):
                                                 self.inference_input_include_probs,
                                                 self.inference_default_input_scale,
                                                 self.inference_input_scales)
-            if self.infer_layer is None:
-                target = z
-            else:
-                target = other_layers[self.infer_layer]
+            target = z if self.infer_layer is None else other_layers[self.infer_layer]
             i_obj = model.inferer.layers[-1].cost(target, pred)
         else:
             i_obj = 0

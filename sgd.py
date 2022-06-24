@@ -383,19 +383,17 @@ class SGD(TrainingAlgorithm):
 
             for param in cur_params:
                 if updates[param].name is None:
-                    updates[param].name = 'sgd_update(' + param.name + ')'
+                    updates[param].name = f'sgd_update({param.name})'
             model.modify_updates(updates)
             for param in cur_params:
                 update = updates[param]
                 if update.name is None:
-                    update.name = 'censor(sgd_update(' + param.name + '))'
+                    update.name = f'censor(sgd_update({param.name}))'
                 for update_val in get_debug_values(update):
                     if np.any(np.isinf(update_val)):
-                        raise ValueError("debug value of %s contains infs" %
-                                update.name)
+                        raise ValueError(f"debug value of {update.name} contains infs")
                     if np.any(np.isnan(update_val)):
-                        raise ValueError("debug value of %s contains nans" %
-                                update.name)
+                        raise ValueError(f"debug value of {update.name} contains nans")
 
 
             with log_timing(log, 'Compiling sgd_update'):
@@ -422,7 +420,7 @@ class SGD(TrainingAlgorithm):
         for param in self.params:
             value = param.get_value(borrow=True)
             if np.any(np.isnan(value)) or np.any(np.isinf(value)):
-                raise Exception("NaN in " + param.name)
+                raise Exception(f"NaN in {param.name}")
 
         self.first = False
         rng = self.rng
@@ -477,7 +475,7 @@ class SGD(TrainingAlgorithm):
         for param in self.params:
             value = param.get_value(borrow=True)
             if np.any(np.isnan(value)) or np.any(np.isinf(value)):
-                raise Exception("NaN in " + param.name)
+                raise Exception(f"NaN in {param.name}")
         self.i = i
 
     def continue_learning(self, model):
@@ -550,12 +548,12 @@ class MonitorBasedLRAdjuster(TrainExtension):
         self.dataset_name = None
         if channel_name is not None:
             self.channel_name = channel_name
+        elif dataset_name is None:
+            self.channel_name = None
+
         else:
-            if dataset_name is not None:
-                self.channel_name = dataset_name + '_objective'
-                self.dataset_name = dataset_name
-            else:
-                self.channel_name = None
+            self.channel_name = f'{dataset_name}_objective'
+            self.dataset_name = dataset_name
 
     def on_monitor(self, model, dataset, algorithm):
         """
@@ -579,7 +577,7 @@ class MonitorBasedLRAdjuster(TrainExtension):
             monitor_channel_specified = False
             channels = [elem for elem in monitor.channels
                     if elem.endswith("objective")]
-            if len(channels) < 1:
+            if not channels:
                 raise ValueError("There are no monitoring channels that end "
                         "with \"objective\". Please specify either "
                         "channel_name or dataset_name.")
@@ -957,8 +955,7 @@ class OneOverEpoch(TrainExtension):
             scale = float(self.half_life) / float(self._count - self.start
                     + self.half_life)
         lr = self._init_lr * scale
-        clipped = max(self.min_lr, lr)
-        return clipped
+        return max(self.min_lr, lr)
 
 class LinearDecayOverEpoch(TrainExtension):
     """
